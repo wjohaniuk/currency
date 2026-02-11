@@ -7,65 +7,45 @@ describe('Component ResultBox', () => {
 		render(<ResultBox from='PLN' to='USD' amount={235} />);
 	});
 
-	const testCases = [
-		{ amount: 123 },
-		{ amount: 555 },
-		{ amount: 11 },
-		{ amount: 5262 },
-		{ amount: 12 },
-	];
-	const exchangeRate = 3.5;
-	for (const testCase of testCases) {
-		it('should render proper info about conversion when PLN -> USD', () => {
-			render(<ResultBox from='PLN' to='USD' amount={testCase.amount} />);
+	it.each([
+		{ amount: 123, expected: 'PLN 123.00 = $35.14' },
+		{ amount: 555, expected: 'PLN 555.00 = $158.57' },
+		{ amount: 11, expected: 'PLN 11.00 = $3.14' },
+		{ amount: 5262, expected: 'PLN 5,262.00 = $1,503.43' },
+		{ amount: 12, expected: 'PLN 12.00 = $3.43' },
+	])(
+		'should render proper info about conversion when PLN -> USD',
+		({ amount, expected }) => {
+			render(<ResultBox from='PLN' to='USD' amount={amount} />);
 			const output = screen.getByTestId('output');
-			const formattedAmount = testCase.amount.toLocaleString('en-US', {
-				minimumFractionDigits: 2,
-				maximumFractionDigits: 2,
-			});
-			const expectedUSD = (testCase.amount / exchangeRate).toLocaleString(
-				'en-US',
-				{
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2,
-				},
-			);
-			expect(output).toHaveTextContent(
-				`PLN ${formattedAmount} = $${expectedUSD}`,
-			);
-		});
-	}
-	for (const testCasePLN of testCases) {
-		it(`should render proper info about conversion when USD -> PLN for amount ${testCasePLN.amount}`, () => {
-			render(<ResultBox from='USD' to='PLN' amount={testCasePLN.amount} />);
+			expect(output).toHaveTextContent(expected);
+		},
+	);
+	it.each([
+		{ amount: 123, expected: '$123.00 = PLN 430.50' },
+		{ amount: 555, expected: '$555.00 = PLN 1,942.50' },
+		{ amount: 11, expected: '$11.00 = PLN 38.50' },
+		{ amount: 5262, expected: '$5,262.00 = PLN 18,417.00' },
+		{ amount: 12, expected: '$12.00 = PLN 42.00' },
+	])(
+		'should render proper info about conversion when USD -> PLN',
+		({ amount, expected }) => {
+			render(<ResultBox from='USD' to='PLN' amount={amount} />);
 			const output = screen.getByTestId('output');
-			const formattedAmount = testCasePLN.amount.toLocaleString('en-US', {
-				minimumFractionDigits: 2,
-				maximumFractionDigits: 2,
-			});
-			const expectedPLN = (testCasePLN.amount * exchangeRate).toLocaleString(
-				'en-US',
-				{
-					minimumFractionDigits: 2,
-					maximumFractionDigits: 2,
-				},
-			);
-			expect(output).toHaveTextContent(
-				`$${formattedAmount} = PLN ${expectedPLN}`,
-			);
-		});
-	}
-	const sameCurrencyTestCases = [{ amount: 100 }, { amount: 50 }];
-
-	for (const testCase of sameCurrencyTestCases) {
-		it(`should render the same values for the same source and target currency for ${testCase.currency}`, () => {
-			render(<ResultBox from='PLN' to='PLN' amount={testCase.amount} />);
+			expect(output).toHaveTextContent(expected);
+		},
+	);
+	it.each([
+		{ amount: 100, expected: 'PLN 100.00 = PLN 100.00' },
+		{ amount: 50, expected: 'PLN 50.00 = PLN 50.00' },
+	])(
+		'should render the same values for the same source and target currency',
+		({ amount, expected }) => {
+			render(<ResultBox from='PLN' to='PLN' amount={amount} />);
 			const output = screen.getByTestId('output');
-			expect(output).toHaveTextContent(
-				`PLN ${testCase.amount.toFixed(2)} = PLN ${testCase.amount.toFixed(2)}`,
-			);
-		});
-	}
+			expect(output).toHaveTextContent(expected);
+		},
+	);
 	it('should render "Wrong value…" for negative amount', () => {
 		render(<ResultBox from='PLN' to='USD' amount={-1} />);
 		const output = screen.getByTestId('output');
